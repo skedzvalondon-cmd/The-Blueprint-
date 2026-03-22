@@ -1,0 +1,18 @@
+{
+  "name": "Life Agent - Your Personal Success System",
+  "short_name": "Life Agent",
+  "description": "Daily tasks, debt tracker, money making, trading, affiliates & mindset",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
