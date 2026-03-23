@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a0a1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Life Agent">
+<link rel="manifest" href="manifest.json">
+<title>Life Agent 🚀</title>
+<style>
+/* ========== RESET & BASE ========== */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0a0a1a;--card:#141428;--card2:#1a1a35;
+  --accent:#6c5ce7;--accent2:#a29bfe;--green:#00b894;
+  --red:#ff6b6b;--orange:#fdcb6e;--blue:#74b9ff;
+  --text:#fff;--text2:#b2b2d0;--text3:#6c6c8a;
+  --radius:16px;--radius-sm:10px;
+}
+html,body{height:100%;overflow:hidden}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  background:var(--bg);color:var(--text);
+  display:flex;flex-direction:column;
+  overscroll-behavior:none;
+}
+::-webkit-scrollbar{width:0}
+input,textarea,select,button{font-family:inherit;font-size:inherit}
+
+/* ========== APP SHELL ========== */
+.app{flex:1;display:flex;flex-direction:column;overflow:hidden;max-width:500px;margin:0 auto;width:100%}
+.screen-container{flex:1;overflow-y:auto;padding:20px 16px 100px;scroll-behavior:smooth}
+.screen{display:none;animation:fadeIn .3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ========== BOTTOM NAV ========== */
+.bottom-nav{
+  position:fixed;bottom:0;left:0;right:0;
+  background:rgba(20,20,40,.95);backdrop-filter:blur(20px);
+  display:flex;justify-content:space-around;
+  padding:8px 0 calc(8px + env(safe-area-inset-bottom));
+  border-top:1px solid rgba(108,92,231,.2);
+  z-index:100;max-width:500px;margin:0 auto;
+}
+.nav-btn{
+  background:none;border:none;color:var(--text3);
+  display:flex;flex-direction:column;align-items:center;
+  gap:4px;font-size:10px;padding:6px 12px;cursor:pointer;
+  transition:all .2s;
+}
+.nav-btn .icon{font-size:22px;transition:transform .2s}
+.nav-btn.active{color:var(--accent2)}
+.nav-btn.active .icon{transform:scale(1.15)}
+
+/* ========== CARDS ========== */
+.card{background:var(--card);border-radius:var(--radius);padding:20px;margin-bottom:14px;border:1px solid rgba(255,255,255,.04)}
+.card-glow{border:1px solid rgba(108,92,231,.3);box-shadow:0 0 30px rgba(108,92,231,.08)}
+.card h3{font-size:15px;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* ========== HEADER ========== */
+.header{margin-bottom:24px}
+.header .greeting{font-size:14px;color:var(--text3);margin-bottom:4px}
+.header h1{font-size:26px;font-weight:700;background:linear-gradient(135deg,var(--accent2),var(--blue));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header .date{font-size:13px;color:var(--text3);margin-top:6px}
+
+/* ========== AFFIRMATION ========== */
+.affirmation-card{
+  background:linear-gradient(135deg,rgba(108,92,231,.15),rgba(116,185,255,.1));
+  border:1px solid rgba(108,92,231,.3);text-align:center;
+  padding:24px 20px;cursor:pointer;
+}
+.affirmation-card .label{font-size:11px;text-transform:uppercase;letter-spacing:2px;color:var(--accent2);margin-bottom:10px}
+.affirmation-card p{font-size:16px;line-height:1.5;color:var(--text);font-style:italic}
+
+/* ========== STATS ROW ========== */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.stat-box{background:var(--card);border-radius:var(--radius-sm);padding:16px 12px;text-align:center}
+.stat-box .num{font-size:22px;font-weight:700;margin-bottom:4px}
+.stat-box .label{font-size:11px;color:var(--text3)}
+.stat-box.green .num{color:var(--green)}
+.stat-box.purple .num{color:var(--accent2)}
+.stat-box.blue .num{color:var(--blue)}
+
+/* ========== BUTTONS ========== */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 24px;border-radius:var(--radius-sm);border:none;
+  font-size:15px;font-weight:600;cursor:pointer;
+  transition:all .2s;width:100%;
+}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-primary:active{background:#5a4bd1;transform:scale(.97)}
+.btn-secondary{background:var(--card2);color:var(--text);border:1px solid rgba(255,255,255,.08)}
+.btn-sm{padding:10px 16px;font-size:13px;width:auto}
+.btn-danger{background:rgba(255,107,107,.15);color:var(--red)}
+
+/* ========== FORM ELEMENTS ========== */
+.input-group{margin-bottom:14px}
+.input-group label{display:block;font-size:13px;color:var(--text3);margin-bottom:6px}
+.input-field{
+  width:100%;padding:14px 16px;background:var(--card2);
+  border:1px solid rgba(255,255,255,.06);border-radius:var(--radius-sm);
+  color:var(--text);font-size:15px;outline:none;
+  transition:border-color .2s;
+}
+.input-field:focus{border-color:var(--accent)}
+.input-field::placeholder{color:var(--text3)}
+select.input-field{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%236c6c8a' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 16px center}
+textarea.input-field{resize:vertical;min-height:80px}
+
+/* ========== TASK ITEMS ========== */
+.task-item{
+  display:flex;align-items:center;gap:12px;
+  padding:14px 16px;background:var(--card2);
+  border-radius:var(--radius-sm);margin-bottom:8px;
+  transition:all .2s;
+}
+.task-item.completed{opacity:.4;text-decoration:line-through}
+.task-check{
+  width:22px;height:22px;border-radius:50%;
+  border:2px solid var(--text3);background:transparent;
+  cursor:pointer;flex-shrink:0;display:flex;align-items:center;
+  justify-content:center;transition:all .2s;
+}
+.task-check.checked{background:var(--green);border-color:var(--green)}
+.task-check.checked::after{content:'✓';color:#fff;font-size:12px}
+.task-text{flex:1;font-size:14px}
+.task-tag{font-size:10px;padding:3px 8px;border-radius:20px;font-weight:600}
+.tag-money{background:rgba(0,184,148,.15);color:var(--green)}
+.tag-debt{background:rgba(255,107,107,.15);color:var(--red)}
+.tag-growth{background:rgba(116,185,255,.15);color:var(--blue)}
+.task-delete{background:none;border:none;color:var(--text3);font-size:18px;cursor:pointer;padding:4px}
+
+/* ========== DEBT ITEM ========== */
+.debt-item{padding:16px;background:var(--card2);border-radius:var(--radius-sm);margin-bottom:10px}
+.debt-item .debt-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.debt-item .debt-name{font-weight:600;font-size:15px}
+.debt-item .debt-apr{font-size:12px;color:var(--red)}
+.debt-item .debt-balance{font-size:20px;font-weight:700;color:var(--red)}
+.debt-item .debt-min{font-size:12px;color:var(--text3);margin-top:2px}
+.progress-bar{height:6px;background:rgba(255,255,255,.06);border-radius:3px;margin-top:10px;overflow:hidden}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--green));border-radius:3px;transition:width .5s}
+.debt-actions{display:flex;gap:8px;margin-top:10px}
+
+/* ========== RESOURCE CARDS ========== */
+.resource-card{
+  padding:16px;background:var(--card2);border-radius:var(--radius-sm);
+  margin-bottom:10px;cursor:pointer;transition:all .2s;
+  border-left:3px solid var(--accent);
+}
+.resource-card:active{transform:scale(.98)}
+.resource-card h4{font-size:15px;margin-bottom:4px}
+.resource-card p{font-size:13px;color:var(--text2);line-height:1.4}
+.resource-card .commission{font-size:13px;color:var(--green);font-weight:600;margin-top:6px}
+.resource-card .tag{font-size:11px;display:inline-block;padding:2px 8px;border-radius:10px;background:rgba(108,92,231,.2);color:var(--accent2);margin-top:6px}
+
+/* ========== TABS ========== */
+.tab-row{display:flex;gap:6px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px}
+.tab-btn{
+  padding:8px 16px;border-radius:20px;border:none;
+  background:var(--card2);color:var(--text3);
+  font-size:13px;font-weight:500;cursor:pointer;
+  white-space:nowrap;transition:all .2s;
+}
+.tab-btn.active{background:var(--accent);color:#fff}
+
+/* ========== MOOD ========== */
+.mood-row{display:flex;justify-content:space-around;margin:16px 0}
+.mood-btn{font-size:32px;background:none;border:none;cursor:pointer;transition:transform .2s;padding:8px}
+.mood-btn:active{transform:scale(1.3)}
+.mood-btn.selected{transform:scale(1.3);filter:drop-shadow(0 0 8px rgba(108,92,231,.5))}
+
+/* ========== JOURNAL ========== */
+.journal-entry{padding:14px;background:var(--card2);border-radius:var(--radius-sm);margin-bottom:8px}
+.journal-entry .je-date{font-size:11px;color:var(--text3);margin-bottom:4px}
+.journal-entry .je-mood{font-size:20px;float:right}
+.journal-entry p{font-size:14px;color:var(--text2);line-height:1.4}
+
+/* ========== SECTION TITLE ========== */
+.section-title{font-size:18px;font-weight:700;margin:24px 0 14px;display:flex;align-items:center;gap:8px}
+.section-title:first-child{margin-top:0}
+
+/* ========== MODAL ========== */
+.modal-overlay{
+  position:fixed;top:0;left:0;right:0;bottom:0;
+  background:rgba(0,0,0,.7);backdrop-filter:blur(4px);
+  display:none;align-items:flex-end;justify-content:center;
+  z-index:200;
+}
+.modal-overlay.show{display:flex}
+.modal{
+  background:var(--card);border-radius:20px 20px 0 0;
+  width:100%;max-width:500px;max-height:85vh;
+  padding:24px 20px calc(20px + env(safe-area-inset-bottom));
+  overflow-y:auto;animation:slideUp .3s ease;
+}
+@keyframes slideUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h2{font-size:20px;margin-bottom:20px;display:flex;align-items:center;gap:10px}
+.modal-close{background:none;border:none;color:var(--text3);font-size:24px;cursor:pointer;position:absolute;right:20px;top:20px}
+
+/* ========== SCHEDULE ========== */
+.schedule-item{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.04)}
+.schedule-item:last-child{border:none}
+.schedule-time{font-size:13px;color:var(--accent2);font-weight:600;min-width:70px}
+.schedule-task{font-size:14px;color:var(--text2)}
+.schedule-icon{font-size:16px}
+
+/* ========== CHECKLIST ========== */
+.checklist-item{
+  display:flex;align-items:flex-start;gap:10px;
+  padding:12px;background:var(--card2);border-radius:var(--radius-sm);
+  margin-bottom:6px;font-size:14px;color:var(--text2);
+  cursor:pointer;transition:all .2s;line-height:1.4;
+}
+.checklist-item:active{background:var(--card)}
+.checklist-item .ci-check{color:var(--text3);flex-shrink:0;margin-top:1px}
+.checklist-item.done{opacity:.5}
+.checklist-item.done .ci-check{color:var(--green)}
+
+/* ========== QUICK ACTIONS ========== */
+.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:14px}
+.qa-btn{
+  padding:16px 12px;background:var(--card);border-radius:var(--radius-sm);
+  border:1px solid rgba(255,255,255,.04);cursor:pointer;
+  text-align:center;transition:all .2s;
+}
+.qa-btn:active{transform:scale(.95);background:var(--card2)}
+.qa-btn .qa-icon{font-size:24px;margin-bottom:6px}
+.qa-btn .qa-label{font-size:12px;color:var(--text2)}
+
+/* ========== TOAST ========== */
+.toast{
+  position:fixed;top:60px;left:50%;transform:translateX(-50%) translateY(-100px);
+  background:var(--card);padding:14px 24px;border-radius:var(--radius-sm);
+  font-size:14px;z-index:300;border:1px solid var(--accent);
+  transition:transform .3s ease;box-shadow:0 10px 40px rgba(0,0,0,.3);
+}
+.toast.show{transform:translateX(-50%) translateY(0)}
+
+/* ========== EMPTY STATE ========== */
+.empty{text-align:center;padding:40px 20px;color:var(--text3)}
+.empty .empty-icon{font-size:48px;margin-bottom:12px}
+.empty p{font-size:14px}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="screen-container">
+
+    <!-- ===== DASHBOARD SCREEN ===== -->
+    <div class="screen active" id="screen-dashboard">
+      <div class="header">
+        <div class="greeting" id="greeting">Good morning</div>
+        <h1 id="user-name-display">Life Agent 🚀</h1>
+        <div class="date" id="today-date"></div>
+      </div>
+
+      <div class="affirmation-card card" onclick="newAffirmation()">
+        <div class="label">✨ Daily Affirmation</div>
+        <p id="affirmation-text"></p>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-box green"><div class="num" id="stat-tasks">0</div><div class="label">Tasks Done</div></div>
+        <div class="stat-box purple"><div class="num" id="stat-streak">0</div><div class="label">Day Streak</div></div>
+        <div class="stat-box blue"><div class="num" id="stat-debt-paid">$0</div><div class="label">Debt Paid</div></div>
+      </div>
+
+      <div class="quick-actions">
+        <div class="qa-btn" onclick="switchTab('tasks')"><div class="qa-icon">✅</div><div class="qa-label">Add Task</div></div>
+        <div class="qa-btn" onclick="switchTab('finance')"><div class="qa-icon">💳</div><div class="qa-label">Track Debt</div></div>
+        <div class="qa-btn" onclick="switchTab('money')"><div class="qa-icon">💰</div><div class="qa-label">Make Money</div></div>
+        <div class="qa-btn" onclick="switchTab('mindset')"><div class="qa-icon">🧠</div><div class="qa-label">Journal</div></div>
+      </div>
+
+      <div class="card">
+        <h3>📋 Today's Schedule</h3>
+        <div class="schedule-item"><span class="schedule-time">5:30 AM</span><span class="schedule-icon">☀️</span><span class="schedule-task">Wake up, hydrate, sunlight</span></div>
+        <div class="schedule-item"><span class="schedule-time">5:45 AM</span><span class="schedule-icon">🧘</span><span class="schedule-task">Meditation + affirmations</span></div>
+        <div class="schedule-item"><span class="schedule-time">6:00 AM</span><span class="schedule-icon">🏋️</span><span class="schedule-task">Exercise (30 min)</span></div>
+        <div class="schedule-item"><span class="schedule-time">6:30 AM</span><span class="schedule-icon">📚</span><span class="schedule-task">Learn & study skills</span></div>
+        <div class="schedule-item"><span class="schedule-time">7:00 AM</span><span class="schedule-icon">🍳</span><span class="schedule-task">Breakfast + review tasks</span></div>
+        <div class="schedule-item"><span class="schedule-time">12:00 PM</span><span class="schedule-icon">🥗</span><span class="schedule-task">Lunch + 15 min walk</span></div>
+        <div class="schedule-item"><span class="schedule-time">5:00 PM</span><span class="schedule-icon">🚀</span><span class="schedule-task">Side hustle power hours</span></div>
+        <div class="schedule-item"><span class="schedule-time">8:00 PM</span><span class="schedule-icon">📊</span><span class="schedule-task">Review finances</span></div>
+        <div class="schedule-item"><span class="schedule-time">9:00 PM</span><span class="schedule-icon">📓</span><span class="schedule-task">Journal + wind down</span></div>
+      </div>
+
+      <div class="card">
+        <h3>🎯 90-Day Progress</h3>
+        <div style="margin-bottom:8px;display:flex;justify-content:space-between;font-size:13px">
+          <span style="color:var(--text3)">Day <span id="day-count">1</span> of 90</span>
+          <span style="color:var(--accent2)" id="day-pct">1%</span>
+        </div>
+        <div class="progress-bar"><div class="fill" id="day-progress" style="width:1%"></div></div>
+      </div>
+    </div>
+
+    <!-- ===== TASKS SCREEN ===== -->
+    <div class="screen" id="screen-tasks">
+      <div class="section-title">✅ Daily Big 3</div>
+      <p style="font-size:13px;color:var(--text3);margin-bottom:14px">One MONEY task • One DEBT task • One GROWTH task</p>
+
+      <div id="big3-container"></div>
+
+      <button class="btn btn-primary" onclick="openModal('task-modal')" style="margin-bottom:24px">+ Add Task</button>
+
+      <div class="section-title">📝 All Tasks</div>
+      <div id="tasks-container">
+        <div class="empty"><div class="empty-icon">📋</div><p>No tasks yet. Add your first task!</p></div>
+      </div>
+    </div>
+
+    <!-- ===== MONEY SCREEN ===== -->
+    <div class="screen" id="screen-money">
+      <div class="section-title">💰 Money Hub</div>
+
+      <div class="tab-row" id="money-tabs">
+        <button class="tab-btn active" onclick="showMoneyTab('quick')">⚡ Quick Cash</button>
+        <button class="tab-btn" onclick="showMoneyTab('affiliate')">🤝 Affiliates</button>
+        <button class="tab-btn" onclick="showMoneyTab('trading')">📈 Trading</button>
+        <button class="tab-btn" onclick="showMoneyTab('skills')">🛠️ Skills</button>
+      </div>
+
+      <!-- Quick Cash -->
+      <div class="money-panel" id="panel-quick">
+        <div class="card card-glow">
+          <h3>🟢 Money THIS WEEK</h3>
+          <div class="resource-card" style="border-left-color:var(--green)">
+            <h4>Sell What You Own</h4>
+            <p>Facebook Marketplace, OfferUp, Poshmark — list 10 items today</p>
+            <div class="commission">Potential: $200-$2,000+ immediately</div>
+          </div>
+          <div class="resource-card" style="border-left-color:var(--green)">
+            <h4>Gig Economy Apps</h4>
+            <p>DoorDash • UberEats • Instacart • TaskRabbit • Amazon Flex</p>
+            <div class="commission">Potential: $500-$2,000+/month</div>
+          </div>
+          <div class="resource-card" style="border-left-color:var(--green)">
+            <h4>Freelance Immediately</h4>
+            <p>Fiverr • Upwork • Rev.com • UserTesting ($10/test)</p>
+            <div class="commission">Potential: $500-$5,000+/month</div>
+          </div>
+        </div>
+        <div class="card">
+          <h3>🟡 Money in 2-4 Weeks</h3>
+          <div class="resource-card" style="border-left-color:var(--orange)">
+            <h4>Local Services</h4>
+            <p>Pressure washing • Lawn care • Cleaning • Car detailing • Junk removal</p>
+            <div class="commission">$100-$800 per job</div>
+          </div>
+          <div class="resource-card" style="border-left-color:var(--orange)">
+            <h4>Social Media Management</h4>
+            <p>Manage Instagram/TikTok for local businesses</p>
+            <div class="commission">$1,000-$3,000 per client/month</div>
+          </div>
+          <div class="resource-card" style="border-left-color:var(--orange)">
+            <h4>Reselling / Flipping</h4>
+            <p>Retail arbitrage, thrift store flipping, FB Marketplace arbitrage</p>
+            <div class="commission">$1,000-$10,000+/month</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Affiliates -->
+      <div class="money-panel" id="panel-affiliate" style="display:none">
+        <div class="card card-glow" style="text-align:center;padding:20px">
+          <div style="font-size:28px;margin-bottom:8px">🎯</div>
+          <div style="font-size:15px;font-weight:600;margin-bottom:4px">Six-Figure Math</div>
+          <div style="font-size:13px;color:var(--text2)">$100 commission × 2.7 sales/day = <span style="color:var(--green);font-weight:700">$100K/year</span></div>
+        </div>
+        <div class="card">
+          <h3>🏆 High-Ticket Affiliate Platforms</h3>
+          <div class="resource-card"><h4>ClickBank</h4><p>Digital products — health, biz-opp, education</p><div class="commission">50-75% commission ($200-500/sale)</div><div class="tag">Best for Beginners</div></div>
+          <div class="resource-card"><h4>Digistore24</h4><p>Digital products, international friendly</p><div class="commission">50-70% commission</div><div class="tag">Global</div></div>
+          <div class="resource-card"><h4>Impact.com</h4><p>Shopify, Canva, Uber, Airbnb and more</p><div class="commission">$50-$200+ per signup</div><div class="tag">Big Brands</div></div>
+          <div class="resource-card"><h4>MaxBounty</h4><p>CPA network — get paid per lead/action</p><div class="commission">$20-$200+ per action</div><div class="tag">CPA</div></div>
+        </div>
+        <div class="card">
+          <h3>🔄 Recurring Commission (Passive Income!)</h3>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>GoHighLevel</h4><p>All-in-one marketing platform</p><div class="commission">40% recurring — $5K-$50K/mo potential</div></div>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>Systeme.io</h4><p>Free funnel builder + email marketing</p><div class="commission">60% recurring — $5K-$20K/mo potential</div></div>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>ConvertKit</h4><p>Email marketing for creators</p><div class="commission">30% recurring — $2K-$10K/mo potential</div></div>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>SEMrush</h4><p>SEO & marketing toolkit</p><div class="commission">$200 per sale — $5K-$30K/mo potential</div></div>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>Jasper AI</h4><p>AI writing assistant</p><div class="commission">30% recurring — $2K-$15K/mo potential</div></div>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>Bluehost</h4><p>Web hosting</p><div class="commission">$65 per signup — $2K-$20K/mo potential</div></div>
+          <div class="resource-card" style="border-left-color:var(--green)"><h4>Shopify</h4><p>E-commerce platform</p><div class="commission">$58+ per signup</div></div>
+        </div>
+        <div class="card">
+          <h3>📦 Marketplace Affiliates</h3>
+          <div class="resource-card"><h4>Amazon Associates</h4><p>1-10% on everything. Best for review content.</p><div class="tag">Low commission but high conversion</div></div>
+          <div class="resource-card"><h4>ShareASale</h4><p>16,000+ merchants. Great variety.</p></div>
+          <div class="resource-card"><h4>CJ Affiliate</h4><p>GoPro, Overstock, Priceline and more big brands.</p></div>
+          <div class="resource-card"><h4>PartnerStack</h4><p>SaaS products with recurring commissions.</p></div>
+        </div>
+      </div>
+
+      <!-- Trading -->
+      <div class="money-panel" id="panel-trading" style="display:none">
+        <div class="card" style="background:rgba(255,107,107,.08);border:1px solid rgba(255,107,107,.2)">
+          <h3 style="color:var(--red)">⚠️ Important</h3>
+          <p style="font-size:13px;color:var(--text2);line-height:1.5">Never trade money you can't afford to lose. Focus on EARNING first. Paper trade before using real money. This is education, NOT financial advice.</p>
+        </div>
+        <div class="card">
+          <h3>📊 Best Trading Platforms</h3>
+          <div class="resource-card"><h4>Webull</h4><p>Free stocks for signup, excellent charts, paper trading</p><div class="tag">Best for Beginners</div></div>
+          <div class="resource-card"><h4>Fidelity</h4><p>No fees, best research tools, very reliable</p><div class="tag">Best Overall</div></div>
+          <div class="resource-card"><h4>TradingView</h4><p>Best charts + analysis. Free tier available.</p><div class="tag">Essential Tool</div></div>
+          <div class="resource-card"><h4>Coinbase</h4><p>Most beginner-friendly crypto exchange</p><div class="tag">Crypto</div></div>
+        </div>
+        <div class="card">
+          <h3>📚 Beginner Strategy</h3>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Paper trade for 2-4 weeks minimum</div>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Learn candlesticks, support/resistance, volume</div>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Start with $100-500 max real money</div>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Dollar-cost average into VOO or QQQ</div>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Never risk more than 1-2% per trade</div>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Always use stop losses</div>
+          <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Keep a trading journal</div>
+        </div>
+        <div class="card">
+          <h3>🔗 Free Learning Resources</h3>
+          <div class="resource-card"><h4>Investopedia</h4><p>Free courses + stock simulator</p></div>
+          <div class="resource-card"><h4>YouTube Channels</h4><p>SMB Capital • Rayner Teo • The Trading Channel</p></div>
+          <div class="resource-card"><h4>Finviz.com</h4><p>Stock screener — find opportunities</p></div>
+        </div>
+      </div>
+
+      <!-- Skills -->
+      <div class="money-panel" id="panel-skills" style="display:none">
+        <div class="card">
+          <h3>🛠️ High-Income Skills to Learn</h3>
+          <div class="resource-card"><h4>Copywriting</h4><p>Learn to write words that sell. $500-$5,000/project</p><div class="commission">Free: Copy.ai blog, YouTube "Alex Cattoni"</div></div>
+          <div class="resource-card"><h4>Video Editing</h4><p>Huge demand from YouTubers & businesses. $500-$2,000/project</p><div class="commission">Free: DaVinci Resolve + YouTube tutorials</div></div>
+          <div class="resource-card"><h4>Web Design</h4><p>Build sites with Webflow or WordPress. $1,000-$5,000/site</p><div class="commission">Free: Webflow University</div></div>
+          <div class="resource-card"><h4>Social Media Management</h4><p>Run social accounts for businesses. $1K-3K/client/month</p><div class="commission">Free: HubSpot Academy</div></div>
+          <div class="resource-card"><h4>Bookkeeping</h4><p>No degree needed. $500-$2,000/client/month</p><div class="commission">Free: Khan Academy, Bookkeepers.com</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== FINANCE SCREEN ===== -->
+    <div class="screen" id="screen-finance">
+      <div class="section-title">📊 Debt Tracker</div>
+
+      <div class="stats-row">
+        <div class="stat-box" style="grid-column:span 2"><div class="num" style="color:var(--red);font-size:26px" id="total-debt">$0</div><div class="label">Total Debt</div></div>
+        <div class="stat-box green"><div class="num" id="total-paid">$0</div><div class="label">Total Paid</div></div>
+      </div>
+
+      <div class="card card-glow" style="text-align:center">
+        <div style="font-size:13px;color:var(--text3);margin-bottom:4px">Debt-Free Progress</div>
+        <div class="progress-bar" style="height:10px;margin:0"><div class="fill" id="debt-progress" style="width:0%"></div></div>
+        <div style="font-size:13px;color:var(--accent2);margin-top:8px" id="debt-pct">0% paid off</div>
+      </div>
+
+      <button class="btn btn-primary" onclick="openModal('debt-modal')">+ Add Debt</button>
+
+      <div id="debts-container" style="margin-top:14px">
+        <div class="empty"><div class="empty-icon">💳</div><p>No debts tracked. Add your debts to start your freedom plan!</p></div>
+      </div>
+
+      <div class="section-title" style="margin-top:30px">⚡ Quick Wins</div>
+      <div class="card">
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Call creditors — ask for lower APR</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Cancel unused subscriptions (use Rocket Money)</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Look into 0% balance transfer cards</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Negotiate bills (internet, phone, insurance)</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Set up autopay for all minimums</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Check for debt consolidation options</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> Sell 10 things you don't need</div>
+      </div>
+    </div>
+
+    <!-- ===== MINDSET SCREEN ===== -->
+    <div class="screen" id="screen-mindset">
+      <div class="section-title">🧠 Mindset & Wellness</div>
+
+      <div class="card card-glow">
+        <h3>🌅 How are you feeling today?</h3>
+        <div class="mood-row">
+          <button class="mood-btn" onclick="selectMood(this,'😫')">😫</button>
+          <button class="mood-btn" onclick="selectMood(this,'😔')">😔</button>
+          <button class="mood-btn" onclick="selectMood(this,'😐')">😐</button>
+          <button class="mood-btn" onclick="selectMood(this,'😊')">😊</button>
+          <button class="mood-btn" onclick="selectMood(this,'🔥')">🔥</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>📓 Gratitude Journal</h3>
+        <div class="input-group">
+          <label>I am grateful for...</label>
+          <textarea class="input-field" id="journal-input" placeholder="Write 3 things you're grateful for today..." rows="3"></textarea>
+        </div>
+        <button class="btn btn-primary" onclick="saveJournal()">Save Entry ✍️</button>
+      </div>
+
+      <div id="journal-entries" style="margin-top:14px"></div>
+
+      <div class="card" style="margin-top:14px">
+        <h3>💪 Daily Affirmations</h3>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> "I am becoming better every single day"</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> "I am capable of building the life I want"</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> "My past does not define my future"</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> "I attract money, opportunities, and good people"</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> "I am worthy of success and happiness"</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> "Discipline is my superpower"</div>
+      </div>
+
+      <div class="card">
+        <h3>🌟 5 Daily Mood Boosters</h3>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> 🏃 Move your body (even 10 min)</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> ☀️ Get 10-15 min sunlight</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> 🥗 Eat real food, drink water</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> 📵 Limit social media to 30 min</div>
+        <div class="checklist-item" onclick="this.classList.toggle('done')"><span class="ci-check">☐</span> 🤝 Connect with someone you care about</div>
+      </div>
+
+      <div class="card">
+        <h3>🆘 Free Mental Health Resources</h3>
+        <div class="resource-card"><h4>988 Suicide & Crisis Lifeline</h4><p>Call or text 988, available 24/7</p></div>
+        <div class="resource-card"><h4>Therapy in a Nutshell</h4><p>Free CBT techniques on YouTube</p></div>
+        <div class="resource-card"><h4>Headspace / Calm</h4><p>Meditation apps (free tiers available)</p></div>
+      </div>
+    </div>
+
+  </div><!-- /screen-container -->
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <button class="nav-btn active" onclick="switchTab('dashboard')"><span class="icon">🏠</span>Home</button>
+    <button class="nav-btn" onclick="switchTab('tasks')"><span class="icon">✅</span>Tasks</button>
+    <button class="nav-btn" onclick="switchTab('money')"><span class="icon">💰</span>Money</button>
+    <button class="nav-btn" onclick="switchTab('finance')"><span class="icon">📊</span>Finance</button>
+    <button class="nav-btn" onclick="switchTab('mindset')"><span class="icon">🧠</span>Mind</button>
+  </nav>
+</div>
+
+<!-- ===== ADD TASK MODAL ===== -->
+<div class="modal-overlay" id="task-modal">
+  <div class="modal">
+    <h2>✅ New Task</h2>
+    <div class="input-group"><label>Task</label><input class="input-field" id="task-input" placeholder="What do you need to do?"></div>
+    <div class="input-group">
+      <label>Category</label>
+      <select class="input-field" id="task-category">
+        <option value="money">💰 Money</option>
+        <option value="debt">💳 Debt</option>
+        <option value="growth">🌱 Growth</option>
+        <option value="general">📋 General</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" onclick="addTask()">Add Task</button>
+    <button class="btn btn-secondary" onclick="closeModal('task-modal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== ADD DEBT MODAL ===== -->
+<div class="modal-overlay" id="debt-modal">
+  <div class="modal">
+    <h2>💳 Add Debt</h2>
+    <div class="input-group"><label>Name</label><input class="input-field" id="debt-name" placeholder="e.g., Chase Credit Card"></div>
+    <div class="input-group"><label>Total Balance ($)</label><input class="input-field" id="debt-balance" type="number" placeholder="5000"></div>
+    <div class="input-group"><label>APR (%)</label><input class="input-field" id="debt-apr" type="number" placeholder="22.99"></div>
+    <div class="input-group"><label>Minimum Payment ($)</label><input class="input-field" id="debt-min" type="number" placeholder="150"></div>
+    <button class="btn btn-primary" onclick="addDebt()">Add Debt</button>
+    <button class="btn btn-secondary" onclick="closeModal('debt-modal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- ===== PAYMENT MODAL ===== -->
+<div class="modal-overlay" id="payment-modal">
+  <div class="modal">
+    <h2>💸 Make Payment</h2>
+    <input type="hidden" id="payment-debt-id">
+    <div class="input-group"><label>Payment Amount ($)</label><input class="input-field" id="payment-amount" type="number" placeholder="100"></div>
+    <button class="btn btn-primary" onclick="makePayment()">Record Payment 🎉</button>
+    <button class="btn btn-secondary" onclick="closeModal('payment-modal')" style="margin-top:8px">Cancel</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DATA STORE =====
+const Store = {
+  get(key, def = null) { try { return JSON.parse(localStorage.getItem('la_' + key)) || def } catch { return def } },
+  set(key, val) { localStorage.setItem('la_' + key, JSON.stringify(val)) }
+};
+
+// ===== STATE =====
+let tasks = Store.get('tasks', []);
+let debts = Store.get('debts', []);
+let journal = Store.get('journal', []);
+let stats = Store.get('stats', { tasksCompleted: 0, streak: 0, lastDate: null, totalPaid: 0, startDate: null });
+
+if (!stats.startDate) { stats.startDate = new Date().toISOString(); Store.set('stats', stats); }
+
+// ===== AFFIRMATIONS =====
+const affirmations = [
+  "I am becoming better every single day.",
+  "I am capable of building the life I want.",
+  "My past does not define my future.",
+  "I attract money, opportunities, and good people.",
+  "I am worthy of success and happiness.",
+  "Discipline is my superpower.",
+  "Every dollar I earn moves me closer to freedom.",
+  "I am stronger than my excuses.",
+  "Today I choose progress over perfection.",
+  "My potential is unlimited.",
+  "I am building something incredible.",
+  "Financial freedom is my birthright.",
+  "I am in control of my thoughts and actions.",
+  "Great things are coming my way.",
+  "I am grateful for this new day of opportunity.",
+  "I am a magnet for wealth and abundance.",
+  "Every setback is a setup for a comeback.",
+  "I release all doubt and embrace confidence.",
+  "My hustle is quiet. My results will be loud.",
+  "I didn't come this far to only come this far."
+];
+
+// ===== INIT =====
+function init() {
+  updateGreeting();
+  newAffirmation();
+  updateDate();
+  renderTasks();
+  renderDebts();
+  renderJournal();
+  updateDashboardStats();
+  updateStreak();
+  update90DayProgress();
+}
+
+function updateGreeting() {
+  const h = new Date().getHours();
+  const g = h < 12 ? 'Good morning ☀️' : h < 17 ? 'Good afternoon 🌤️' : 'Good evening 🌙';
+  document.getElementById('greeting').textContent = g;
+}
+
+function updateDate() {
+  const d = new Date();
+  document.getElementById('today-date').textContent = d.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function newAffirmation() {
+  const el = document.getElementById('affirmation-text');
+  el.textContent = '"' + affirmations[Math.floor(Math.random() * affirmations.length)] + '"';
+  el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'fadeIn .5s ease';
+}
+
+function update90DayProgress() {
+  const start = new Date(stats.startDate);
+  const now = new Date();
+  const days = Math.floor((now - start) / 86400000) + 1;
+  const pct = Math.min(Math.round((days / 90) * 100), 100);
+  document.getElementById('day-count').textContent = Math.min(days, 90);
+  document.getElementById('day-pct').textContent = pct + '%';
+  document.getElementById('day-progress').style.width = pct + '%';
+}
+
+function updateStreak() {
+  const today = new Date().toDateString();
+  if (stats.lastDate === today) return;
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  if (stats.lastDate === yesterday) {
+    stats.streak++;
+  } else if (stats.lastDate !== today) {
+    stats.streak = tasks.some(t => t.completed && new Date(t.completedAt).toDateString() === today) ? 1 : stats.streak;
+  }
+  Store.set('stats', stats);
+}
+
+// ===== NAV =====
+function switchTab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => { if (b.textContent.toLowerCase().includes(name === 'dashboard' ? 'home' : name === 'finance' ? 'finance' : name === 'mindset' ? 'mind' : name)) b.classList.add('active') });
+  document.querySelector('.screen-container').scrollTop = 0;
+}
+
+// ===== MODAL =====
+function openModal(id) { document.getElementById(id).classList.add('show') }
+function closeModal(id) { document.getElementById(id).classList.remove('show') }
+
+// ===== TOAST =====
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ===== TASKS =====
+function addTask() {
+  const text = document.getElementById('task-input').value.trim();
+  if (!text) return;
+  const cat = document.getElementById('task-category').value;
+  tasks.push({ id: Date.now(), text, category: cat, completed: false, createdAt: new Date().toISOString(), completedAt: null });
+  Store.set('tasks', tasks);
+  document.getElementById('task-input').value = '';
+  closeModal('task-modal');
+  renderTasks();
+  updateDashboardStats();
+  showToast('✅ Task added!');
+}
+
+function toggleTask(id) {
+  const task = tasks.find(t => t.id === id);
+  if (!task) return;
+  task.completed = !task.completed;
+  task.completedAt = task.completed ? new Date().toISOString() : null;
+  if (task.completed) {
+    stats.tasksCompleted++;
+    stats.lastDate = new Date().toDateString();
+    Store.set('stats', stats);
+  }
+  Store.set('tasks', tasks);
+  renderTasks();
+  updateDashboardStats();
+  if (task.completed) showToast('🎉 Task completed!');
+}
+
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  Store.set('tasks', tasks);
+  renderTasks();
+  updateDashboardStats();
+}
+
+function renderTasks() {
+  const big3Container = document.getElementById('big3-container');
+  const allContainer = document.getElementById('tasks-container');
+
+  const todayTasks = tasks.filter(t => {
+    const created = new Date(t.createdAt).toDateString();
+    return created === new Date().toDateString();
+  });
+
+  // Big 3
+  const categories = ['money', 'debt', 'growth'];
+  const catLabels = { money: '💰 Money', debt: '💳 Debt', growth: '🌱 Growth' };
+  const catClasses = { money: 'tag-money', debt: 'tag-debt', growth: 'tag-growth' };
+
+  let big3Html = '';
+  categories.forEach(cat => {
+    const task = todayTasks.find(t => t.category === cat);
+    if (task) {
+      big3Html += `<div class="task-item ${task.completed ? 'completed' : ''}">
+        <div class="task-check ${task.completed ? 'checked' : ''}" onclick="toggleTask(${task.id})"></div>
+        <span class="task-text">${task.text}</span>
+        <span class="task-tag ${catClasses[cat]}">${catLabels[cat]}</span>
+      </div>`;
+    } else {
+      big3Html += `<div class="task-item" style="opacity:.3;cursor:pointer" onclick="document.getElementById('task-category').value='${cat}';openModal('task-modal')">
+        <div class="task-check"></div>
+        <span class="task-text">Add your ${cat} task...</span>
+        <span class="task-tag ${catClasses[cat]}">${catLabels[cat]}</span>
+      </div>`;
+    }
+  });
+  big3Container.innerHTML = big3Html;
+
+  // All tasks
+  if (tasks.length === 0) {
+    allContainer.innerHTML = '<div class="empty"><div class="empty-icon">📋</div><p>No tasks yet. Add your first task!</p></div>';
+    return;
+  }
+
+  const active = tasks.filter(t => !t.completed);
+  const done = tasks.filter(t => t.completed).slice(-10).reverse();
+
+  let html = '';
+  active.forEach(t => {
+    const tagClass = t.category === 'money' ? 'tag-money' : t.category === 'debt' ? 'tag-debt' : t.category === 'growth' ? 'tag-growth' : '';
+    const tagLabel = t.category === 'money' ? '💰' : t.category === 'debt' ? '💳' : t.category === 'growth' ? '🌱' : '📋';
+    html += `<div class="task-item"><div class="task-check" onclick="toggleTask(${t.id})"></div><span class="task-text">${t.text}</span><span class="task-tag ${tagClass}">${tagLabel}</span><button class="task-delete" onclick="deleteTask(${t.id})">×</button></div>`;
+  });
+  if (done.length) {
+    html += '<div style="font-size:13px;color:var(--text3);margin:16px 0 8px">Completed</div>';
+    done.forEach(t => {
+      html += `<div class="task-item completed"><div class="task-check checked" onclick="toggleTask(${t.id})"></div><span class="task-text">${t.text}</span><button class="task-delete" onclick="deleteTask(${t.id})">×</button></div>`;
+    });
+  }
+  allContainer.innerHTML = html;
+}
+
+// ===== DEBTS =====
+function addDebt() {
+  const name = document.getElementById('debt-name').value.trim();
+  const balance = parseFloat(document.getElementById('debt-balance').value);
+  const apr = parseFloat(document.getElementById('debt-apr').value) || 0;
+  const min = parseFloat(document.getElementById('debt-min').value) || 0;
+  if (!name || !balance) return;
+
+  debts.push({ id: Date.now(), name, originalBalance: balance, currentBalance: balance, apr, minPayment: min, payments: [] });
+  Store.set('debts', debts);
+  document.getElementById('debt-name').value = '';
+  document.getElementById('debt-balance').value = '';
+  document.getElementById('debt-apr').value = '';
+  document.getElementById('debt-min').value = '';
+  closeModal('debt-modal');
+  renderDebts();
+  updateDashboardStats();
+  showToast('💳 Debt added — let\'s crush it!');
+}
+
+function openPayment(id) {
+  document.getElementById('payment-debt-id').value = id;
+  document.getElementById('payment-amount').value = '';
+  openModal('payment-modal');
+}
+
+function makePayment() {
+  const id = parseInt(document.getElementById('payment-debt-id').value);
+  const amount = parseFloat(document.getElementById('payment-amount').value);
+  if (!amount || amount <= 0) return;
+
+  const debt = debts.find(d => d.id === id);
+  if (!debt) return;
+
+  debt.currentBalance = Math.max(0, debt.currentBalance - amount);
+  debt.payments.push({ amount, date: new Date().toISOString() });
+  stats.totalPaid += amount;
+  Store.set('debts', debts);
+  Store.set('stats', stats);
+
+  closeModal('payment-modal');
+  renderDebts();
+  updateDashboardStats();
+
+  if (debt.currentBalance === 0) {
+    showToast('🎉🎉🎉 DEBT PAID OFF! You\'re amazing!');
+  } else {
+    showToast(`💸 $${amount.toFixed(2)} payment recorded!`);
+  }
+}
+
+function deleteDebt(id) {
+  if (!confirm('Delete this debt?')) return;
+  debts = debts.filter(d => d.id !== id);
+  Store.set('debts', debts);
+  renderDebts();
+  updateDashboardStats();
+}
+
+function renderDebts() {
+  const container = document.getElementById('debts-container');
+  if (debts.length === 0) {
+    container.innerHTML = '<div class="empty"><div class="empty-icon">💳</div><p>No debts tracked. Add your debts to start your freedom plan!</p></div>';
+    updateDebtTotals();
+    return;
+  }
+
+  // Sort by APR descending (avalanche method)
+  const sorted = [...debts].sort((a, b) => b.apr - a.apr);
+
+  let html = '';
+  sorted.forEach((d, i) => {
+    const paidPct = ((d.originalBalance - d.currentBalance) / d.originalBalance * 100).toFixed(0);
+    const isPaidOff = d.currentBalance <= 0;
+    html += `<div class="debt-item" style="${isPaidOff ? 'border:1px solid var(--green);opacity:.7' : ''}">
+      <div class="debt-header">
+        <span class="debt-name">${isPaidOff ? '✅ ' : ''}${d.name}</span>
+        <span class="debt-apr">${d.apr}% APR</span>
+      </div>
+      <div class="debt-balance">${isPaidOff ? 'PAID OFF! 🎉' : '$' + d.currentBalance.toLocaleString('en-US', {minimumFractionDigits: 2})}</div>
+      <div class="debt-min">Min payment: $${d.minPayment}/mo • Paid: ${paidPct}%</div>
+      <div class="progress-bar"><div class="fill" style="width:${paidPct}%"></div></div>
+      <div class="debt-actions">
+        ${!isPaidOff ? `<button class="btn btn-sm btn-primary" onclick="openPayment(${d.id})">💸 Payment</button>` : ''}
+        <button class="btn btn-sm btn-danger" onclick="deleteDebt(${d.id})">🗑️</button>
+      </div>
+    </div>`;
+  });
+  container.innerHTML = html;
+  updateDebtTotals();
+}
+
+function updateDebtTotals() {
+  const totalDebt = debts.reduce((s, d) => s + d.currentBalance, 0);
+  const totalOriginal = debts.reduce((s, d) => s + d.originalBalance, 0);
+  const totalPaid = totalOriginal - totalDebt;
+  const pct = totalOriginal > 0 ? (totalPaid / totalOriginal * 100).toFixed(0) : 0;
+
+  document.getElementById('total-debt').textContent = '$' + totalDebt.toLocaleString('en-US', { minimumFractionDigits: 0 });
+  document.getElementById('total-paid').textContent = '$' + totalPaid.toLocaleString('en-US', { minimumFractionDigits: 0 });
+  document.getElementById('debt-progress').style.width = pct + '%';
+  document.getElementById('debt-pct').textContent = pct + '% paid off';
+}
+
+// ===== JOURNAL =====
+function saveJournal() {
+  const text = document.getElementById('journal-input').value.trim();
+  if (!text) return;
+
+  const selectedMood = document.querySelector('.mood-btn.selected');
+  const mood = selectedMood ? selectedMood.textContent : '😊';
+
+  journal.unshift({ id: Date.now(), text, mood, date: new Date().toISOString() });
+  Store.set('journal', journal);
+  document.getElementById('journal-input').value = '';
+  if (selectedMood) selectedMood.classList.remove('selected');
+  renderJournal();
+  showToast('📓 Journal entry saved!');
+}
+
+function selectMood(btn, mood) {
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function renderJournal() {
+  const container = document.getElementById('journal-entries');
+  if (journal.length === 0) { container.innerHTML = ''; return; }
+
+  let html = '<div class="section-title" style="font-size:16px">📖 Past Entries</div>';
+  journal.slice(0, 20).forEach(j => {
+    const date = new Date(j.date);
+    const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' · ' + date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    html += `<div class="journal-entry"><div class="je-mood">${j.mood}</div><div class="je-date">${dateStr}</div><p>${j.text}</p></div>`;
+  });
+  container.innerHTML = html;
+}
+
+// ===== DASHBOARD STATS =====
+function updateDashboardStats() {
+  const todayCompleted = tasks.filter(t => t.completed && t.completedAt && new Date(t.completedAt).toDateString() === new Date().toDateString()).length;
+  document.getElementById('stat-tasks').textContent = todayCompleted;
+  document.getElementById('stat-streak').textContent = stats.streak;
+  document.getElementById('stat-debt-paid').textContent = '$' + stats.totalPaid.toLocaleString('en-US', { minimumFractionDigits: 0 });
+}
+
+// ===== MONEY TABS =====
+function showMoneyTab(tab) {
+  document.querySelectorAll('.money-panel').forEach(p => p.style.display = 'none');
+  document.getElementById('panel-' + tab).style.display = 'block';
+  document.querySelectorAll('#money-tabs .tab-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+// ===== SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').catch(() => {});
+}
+
+// ===== START =====
+init();
+setInterval(updateGreeting, 60000);
+</script>
+</body>
+</html>{
+  "name": "Life Agent - Your Personal Success System",
+  "short_name": "Life Agent",
+  "description": "Daily tasks, debt tracker, money making, trading, affiliates & mindset",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a1a",
+  "theme_color": "#0a0a1a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}const CACHE_NAME = 'life-agent-v1';
+const ASSETS = ['/', '/index.html'];
+
+self.addEventListener('install', e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)));
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request).catch(() =>
+      caches.match('/index.html')
+    ))
+  );
+});
